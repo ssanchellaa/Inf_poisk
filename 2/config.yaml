@@ -1,0 +1,31 @@
+# Конфигурация базы данных MongoDB
+db:
+  host: "localhost"
+  port: 27017
+  database: "search_engine"
+  collection: "documents"
+  username: ""  # оставить пустым для локальной БД
+  password: ""  # оставить пустым для локальной БД
+
+# Логика работы краулера
+logic:
+  delay: 1  # задержка между запросами в секундах
+  max_pages: 1000  # максимальное количество страниц для скачивания
+  revisit_interval: 604800  # интервал перепроверки страниц (7 дней в секундах)
+  user_agent: "SearchCrawler/1.0"
+  timeout: 10  # таймаут запроса в секундах
+  max_retries: 3  # количество попыток при ошибках
+  
+# Начальные URL для обхода (seed URLs)
+seeds:
+  - "https://ru.wikipedia.org/wiki/Актёры_США"
+  - "https://ru.wikipedia.org/wiki/Кино"
+  
+# Ограничения обхода
+restrictions:
+  allowed_domains:
+    - "ru.wikipedia.org"
+  disallowed_paths:  # пути, которые не нужно обходить
+    - "/wiki/Служебная:"
+    - "/wiki/Обсуждение:"
+    - "/wiki/Категория:"
