@@ -8,8 +8,15 @@
 #include <filesystem>
 #include <codecvt>
 #include <locale>
-#include <cwctype>  // Для iswalnum и towlower
+#include <cwctype>
+#include <algorithm>
+#include <cmath>
 #include "stemmer.h"
+
+// Добавьте эту строку
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 namespace fs = std::filesystem;
 
@@ -49,7 +56,7 @@ private:
                 c == L'ё' || c == L'Ё' ||
                 c == L'-' || c == L'\'' || c == L'&') {
                 
-                current_token += towlower(c);  // towlower, а не std::towlower
+                current_token += towlower(c);
             } else if (!current_token.empty()) {
                 // Проверяем минимальную длину токена
                 if (current_token.length() >= 2) {
@@ -107,9 +114,22 @@ public:
         return index.size();
     }
     
+
+
     // Индексация документа
     void index_document(const std::string& filepath) {
-        std::ifstream file(filepath, std::ios::binary);
+        // Используем std::ifstream с широкими символами для Windows
+        std::ifstream file;
+        
+        #ifdef _WIN32
+        // Для Windows конвертируем путь в wstring
+        std::wstring wpath = utf8_to_wstring(filepath);
+        file.open(wpath.c_str(), std::ios::binary);
+        #else
+        // Для Linux/Unix
+        file.open(filepath.c_str(), std::ios::binary);
+        #endif
+        
         if (!file) {
             std::cerr << "Не удалось открыть файл: " << filepath << std::endl;
             return;
@@ -154,8 +174,8 @@ public:
         
         if (doc_id % 100 == 0) {
             std::cout << "Проиндексирован документ #" << doc_id 
-                      << ": " << filepath 
-                      << " (токенов: " << tokens.size() << ")" << std::endl;
+                    << ": " << filepath 
+                    << " (токенов: " << tokens.size() << ")" << std::endl;
         }
     }
     
@@ -455,6 +475,12 @@ public:
 };
 
 int main(int argc, char* argv[]) {
+     // Настройка кодировки для Windows
+    #ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+    #endif
+    
     // Устанавливаем локаль для работы с русскими символами
     std::locale::global(std::locale(""));
     
