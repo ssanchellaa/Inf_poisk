@@ -55,7 +55,9 @@ bool Tokenizer::is_word_char(wchar_t c, wchar_t prev_c, wchar_t next_c) const {
     }
     
     // Плюсы в "C++"
-    if (c == L'+' && prev_c == L'C' && next_c == L'+') {
+    if (c == L'+' && prev_c != 0 && 
+        (towlower(prev_c) == L'c' || iswdigit(prev_c)) && 
+        next_c == L'+') {
         return true;
     }
     

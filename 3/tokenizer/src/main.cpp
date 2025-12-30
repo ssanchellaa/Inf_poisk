@@ -6,9 +6,13 @@
 #include <algorithm>
 #include <locale>
 #include <codecvt>
-#include <cwctype>  // Добавляем для towlower
+#include <cwctype>
 #include "tokenizer.h"
 #include "file_processor.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 // Функция для конвертации wstring в UTF-8 string
 std::string wstring_to_utf8(const std::wstring& wstr) {
@@ -127,6 +131,12 @@ void print_statistics(const Tokenizer& tokenizer,
 }
 
 int main(int argc, char* argv[]) {
+    // Установка кодировки UTF-8 для Windows
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+#endif
+
     // Устанавливаем локаль для корректного вывода
     std::locale::global(std::locale(""));
     
@@ -173,7 +183,7 @@ int main(int argc, char* argv[]) {
     // Вывод топ-20 токенов
     print_top_tokens(tokenizer, 20);
     
-    // Анализ производительности
+    // Анализ производительности ← ТОЛЬКО ОДИН РАЗ!
     analyze_performance(processor.get_timings());
     
     // Примеры токенов
@@ -200,36 +210,6 @@ int main(int argc, char* argv[]) {
             std::cout << "'" << wstring_to_utf8(temp_tokens[0]) << "'";
         }
         std::cout << std::endl;
-    }
-    
-    // Сохранение результатов
-    std::cout << "\nСохранить результаты в файл? (y/n): ";
-    char choice;
-    std::cin >> choice;
-    
-    if (choice == 'y' || choice == 'Y') {
-        std::ofstream out("tokenization_results.txt");
-        if (out.is_open()) {
-            out << "Результаты токенизации\n";
-            out << "======================\n";
-            out << "Файлов: " << processor.get_file_count() << "\n";
-            out << "Общий объем: " << total_bytes << " байт\n";
-            out << "Токенов: " << total_tokens << "\n";
-            out << "Уникальных токенов: " << tokenizer.get_token_frequencies().size() << "\n";
-            out << "Средняя длина: " << tokenizer.get_average_length() << "\n";
-            out << "Время: " << total_time << " сек\n";
-            out << "Скорость: " << (total_bytes / 1024.0) / total_time << " КБ/сек\n";
-            out << "\nТоп-20 токенов:\n";
-            
-            auto top_tokens = tokenizer.get_top_tokens(20);
-            for (size_t i = 0; i < top_tokens.size(); i++) {
-                out << i+1 << ". " << wstring_to_utf8(top_tokens[i].first) 
-                    << " - " << top_tokens[i].second << "\n";
-            }
-            
-            out.close();
-            std::cout << "Результаты сохранены в tokenization_results.txt" << std::endl;
-        }
     }
     
     std::cout << "\nТокенизация завершена успешно!" << std::endl;
